@@ -1,0 +1,1 @@
+pos;sx;sy;sz;color;invert(1/0)
