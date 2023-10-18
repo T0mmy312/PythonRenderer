@@ -26,7 +26,7 @@ class color:
         return color(clamp(0, 255 - self.r, 255), clamp(0, 255 - self.g, 255), clamp(0, 255 - self.b, 255))
     
     def tup(self):
-        return (self.r, self.g, self.b)
+        return (int(self.r), int(self.g), int(self.b))
     
     def __sub__(self, other):
         return color(self.r - other.r, self.g - other.g, self.b - other.b)
@@ -35,13 +35,14 @@ class color:
         return color(clamp(0, self.r * other, 255), clamp(0, self.g * other, 255), clamp(0, self.b * other, 255))
 
 class light:
-    def __init__(self, pos, color, intensity):
+    def __init__(self, pos, color, intensity, radius):
         self.pos = pos
         self.color = color
         self.intensity = intensity
+        self.radius = radius
 
 class renderer:
-    def __init__(self, c, f, ref, screenX, screenY, sensX, polys, lights, maxAngleOffset, maxBounces):
+    def __init__(self, c, f, ref, screenX, screenY, sensX, polys, lights, maxBounces):
         self.c = c
         self.f = f
         self.ref = ref
@@ -52,10 +53,9 @@ class renderer:
         self.mdPix = sensX/screenX
         self.polys = polys
         self.lights = lights
-        self.mAO = maxAngleOffset
         self.maxBounces = maxBounces
     
-    def render(self, surface):
+    def render(self):
         fy = vector3(0, 1, 0)
         if self.f != fy:
             fr = crossProd(self.f, fy).unitVec() * self.mdPix
@@ -66,7 +66,7 @@ class renderer:
         hsx = self.screenX / 2
         hsy = self.screenY / 2
         polys = []
-        pixls = [[None] * self.screenX] * self.screenY
+        pixls = []
         for y in range(self.screenY + 1):
             row = []
             for x in range(self.screenX + 1):
@@ -86,9 +86,9 @@ class renderer:
                             points.append((light.pos, light.color, light.intensity))
                             noLight = False
                             break
-                        alpha = degrees(angl(light.pos - g1.op, g1.a))
-                        if alpha < self.mAO:
-                            points.append((light.pos, light.color, light.intensity * (1 - alpha/self.mAO)))
+                        rad = sin(angl(light.pos - g1.op, g1.a)) * (light.pos - g1.op).amount()
+                        if rad < light.radius:
+                            points.append((light.pos, light.color, light.intensity * (1 - rad/light.radius)))
                             noLight = False
                             break
                     if not noLight:
@@ -107,19 +107,19 @@ class renderer:
                             [e.a.z, e.b.z, -g1.a.z]
                         ])
                         dt = det3x3([
-                            [g1.op.x - e.p.x, e.b.x, -g1.a.x],
-                            [g1.op.y - e.p.y, e.b.y, -g1.a.y],
-                            [g1.op.z - e.p.z, e.b.z, -g1.a.z]
+                            [g1.op.x - e.op.x, e.b.x, -g1.a.x],
+                            [g1.op.y - e.op.y, e.b.y, -g1.a.y],
+                            [g1.op.z - e.op.z, e.b.z, -g1.a.z]
                         ])
                         ds = det3x3([
-                            [e.a.x, g1.op.x - e.p.x, -g1.a.x],
-                            [e.a.y, g1.op.y - e.p.y, -g1.a.y],
-                            [e.a.z, g1.op.z - e.p.z, -g1.a.z]
+                            [e.a.x, g1.op.x - e.op.x, -g1.a.x],
+                            [e.a.y, g1.op.y - e.op.y, -g1.a.y],
+                            [e.a.z, g1.op.z - e.op.z, -g1.a.z]
                         ])
                         dp = det3x3([
-                            [e.a.x, e.b.x, g1.op.x - e.p.x],
-                            [e.a.y, e.b.y, g1.op.y - e.p.y],
-                            [e.a.z, e.b.z, g1.op.z - e.p.z]
+                            [e.a.x, e.b.x, g1.op.x - e.op.x],
+                            [e.a.y, e.b.y, g1.op.y - e.op.y],
+                            [e.a.z, e.b.z, g1.op.z - e.op.z]
                         ])
                         if dk == 0:
                             continue
@@ -154,6 +154,6 @@ class renderer:
                     totalColor -= points[vp][1].invert()
                 totalColor *= ((1/(totalLen**2)) * points[-1][2])
                 row.append(totalColor.tup())
-                print(f"Pixel ({x}, {y}) was rendered with color {totalColor.tup()}! {int(y/self.screenY * 100)}% Complete!")
+                print(f"{int(y/self.screenY * 100)}% Complete! Pixel ({x}, {y}) was rendered with color {totalColor.tup()}!")
             pixls.append(row)
         return pixls

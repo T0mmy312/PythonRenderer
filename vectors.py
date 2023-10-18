@@ -10,34 +10,22 @@ def crossProd(a, b): #returns the cross product of two vector3's
 def angl(a, b): #returns the angle between two vectors
   if isinstance(a, vector3) and isinstance(b, vector3) or isinstance(
       a, vector2) and isinstance(b, vector2):
-    return degrees(acos((a * b) / (a.a * b.a)))
+    return acos((a * b) / (a.amount() * b.amount()))
   else:
     return ValueError(f"angl only works on vector3 and vector3 or vector2 and vector2 and not with {type(a)} and {type(b)}!")
 
 def vecPar(a, b): #checks if two vectors are paralell or not
-  if isinstance(a, vector2) and isinstance(b, vector2):
-    return a.x/a.y == b.x/b.y
-  elif isinstance(a, vector3) and isinstance(b, vector3):
-    return a.x/b.x == a.y/b.y and a.y/b.y == a.z/b.z
-  elif isinstance(a, gP) and isinstance(b, gP):
-    if isinstance(a.a, vector2) and isinstance(b.a, vector2):
-      return a.a.x/a.a.y == b.a.x/b.a.y
-    if isinstance(a, vector3) and isinstance(b, vector3):
-      return a.a.x/b.a.x == a.a.y/b.a.y and a.a.y/b.a.y == a.a.z/b.a.z
+  return a.amount() * b.amount() == a * b
 
 def intersect(g1, g2): #returns the intersection of g1 and g2
-  if isinstance(g1, gP) and isinstance(g2, gP):
-    if vecPar(g1.a, g2.a):
-      return g1 if g2.element(g1.op) else None
-    else:
-      if isinstance(g1.a, vector2) and isinstance(g2.a, vector2):
-        t = (g2.op.x * g2.a.y + g1.op.y * g2.a.x - g2.op.y * g2.a.x - g1.op.x * g2.a.y)/(g1.a.x * g2.a.y - g1.a.y * g2.a.y)
-        #s = (g1.op.y + t * g1.a.y - g2.op.y)/g2.a.y
-        return g1.calc(t)
-      elif isinstance(g1.a, vector3) and isinstance(g2.a, vector3):
-        t = (g2.op.x * g2.a.y + g1.op.y * g2.a.x - g2.op.y * g2.a.x - g1.op.x * g2.a.y)/(g1.a.x * g2.a.y - g1.a.y * g2.a.x)
-        #s = (g1.op.y + t * g1.a.y - g2.op.y)/g2.a.y
-        return g1.calc(t)
+  dk = g1.a.y * g2.a.x - g2.a.y * g1.a.x
+  if dk == 0:
+    return None
+  dt = g2.a.y * (g1.op.x - g2.op.x) - g2.a.x * (g1.op.y - g2.op.y)
+  dt2 = g1.a.x * (g1.op.y + g2.op.y) - g1.a.y * (g1.op.x - g2.op.x)
+  t = dt / dk
+  t2 = dt2 / dk
+  return g1.calc(t) if g1.op.z - g2.op.z == t2 * g2.a.z - t * g1.a.z else None
 
 def det3x3(a):
   return (a[0][0]*a[1][1]*a[2][2]+a[0][1]*a[1][2]*a[2][0]+a[0][2]*a[1][0]*a[2][1]) - (a[2][0]*a[1][1]*a[0][2]+a[2][1]*a[1][2]*a[0][0]+a[2][2]*a[1][0]*a[0][1])
@@ -282,19 +270,26 @@ class vector2:
 
 class plane:
 
-  def __init__(self, p: vector3,x: vector3, y: vector3):
-    self.p = p
-    self.x = x
-    self.y = y
+  def __init__(self, op: vector3, a: vector3, b: vector3):
+    self.op = op
+    self.a = a
+    self.b = b
   
   def n(self):
-    return crossProd(self.x, self.y)
+    return crossProd(self.a, self.b)
   
   def calc(self, t, s):
-    return self.p + t * self.x + s * self.y
+    return self.p + t * self.a + s * self.b
   
-  def onPlane(a: vector3):
-    pass
+  def onPlane(self, p: vector3):
+    dk = self.a.x * self.b.y - self.a.y * self.b.x
+    if dk == 0:
+      return (False, 0, 0)
+    dt = self.b.y * (p.z - self.op.z) - self.b.x * (p.y - self.op.y)
+    ds = self.a.x * (p.z - self.op.z) - self.a.y * (p.y - self.op.y)
+    t = dt / dk
+    s = ds / dk
+    return (True, t, s) if p.z - self.op.z == t * self.a.z + s * self.b.z else (False, 0, 0)
 
 class g:
 
@@ -321,36 +316,12 @@ class gP:
     return self.op + t * self.a
 
   def element(self, p):
-    if isinstance(self.op, vector2) and isinstance(p, vector2):
-      if self.a.x != 0:
-        t1 = (p.x - self.op.x)/self.a.x
-      else:
-        t1 = p.x == self.op.x
-      if self.a.y != 0:
-        t2 = (p.y - self.op.y)/self.a.y
-      else:
-        t2 = p.y == self.op.y
-      if isinstance(t1, bool) or isinstance(t2, bool):
-        return t1 * t2 != 0
-      else:
-        return t1 == t2
-    elif isinstance(self.op, vector3) and isinstance(p, vector3):
-      if self.a.x != 0:
-        t1 = (p.x - self.op.x)/self.a.x
-      else:
-        t1 = p.x == self.op.x
-      if self.a.y != 0:
-        t2 = (p.y - self.op.y)/self.a.y
-      else:
-        t2 = p.y == self.op.y
-      if self.a.z != 0:
-        t3 = (p.z - self.op.z)/self.a.z
-      else:
-        t3 = p.z == self.op.z
-      if isinstance(t1, bool) or isinstance(t2, bool) or isinstance(t3, bool):
-        return t1 * t2 * t3 != 0
-      else:
-        return t1 == t2 and t2 == t3
+    v = p - self.op
+    if vecPar(v, self.a):
+      t = v.amount() / self.a.amount()
+      return (True, t if v.unitVec() == self.a.unitVec() else -t)
+    else:
+      return (False, 0)
   
   def __str__(self):
     return f"X = ({self.op}) + t * ({self.a})"

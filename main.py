@@ -57,7 +57,6 @@ with open("cubes.txt", "r") as file:
             polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), col))
     file.close()
 
-
 lights = []
 with open("lights.txt", "r") as file:
     con = file.read().replace(" ", "").replace("(", "").replace(")", "").split("\n")
@@ -67,7 +66,7 @@ with open("lights.txt", "r") as file:
         pos = spl[0].split(",")
         rgb = spl[1].split(",")
         intens = float(spl[2])
-        lights.append(light(vector3(float(pos[0]), float(pos[1]), float(pos[2])), color(float(rgb[0]), float(rgb[1]), float(rgb[2])), intens))
+        lights.append(light(vector3(float(pos[0]), float(pos[1]), float(pos[2])), color(float(rgb[0]), float(rgb[1]), float(rgb[2])), intens, float(spl[3])))
     file.close()
 
 window_width = 800
@@ -82,11 +81,20 @@ running = True
 #one time renderer
 screen.fill((255, 255, 255))
 pygame.display.flip()
-ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 0.5, window_width, window_height, window_width/1000, polis, lights, 45, 4)
-pixs = ren.render(screen)
+ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 0.8, window_width, window_height, window_width/1000, polis, lights, 4)
+pixs = ren.render()
+
+with open("screen.txt", "w") as file:
+    con = ""
+    for y, row in enumerate(pixs):
+        for x, pix in enumerate(row):
+            con += f"({pix[0]}, {pix[1]}, {pix[2]}) "
+        con += "\n"
+    file.write(con)
+    file.close()
 for y, row in enumerate(pixs):
     for x, colo in enumerate(row):
-        screen.set_at((x, y), colo)
+        screen.set_at((x, y), (colo[0], colo[1], colo[2]))
 
 pygame.display.flip()
 
