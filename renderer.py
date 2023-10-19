@@ -65,70 +65,39 @@ class renderer:
         oo = self.c + self.f
         hsx = self.screenX / 2
         hsy = self.screenY / 2
-        polys = []
+        sxeven = self.screenX % 2 == 0
+        syeven= self.screenY % 2 == 0
         pixls = []
         for y in range(self.screenY + 1):
             row = []
             for x in range(self.screenX + 1):
-                polys = self.polys
-                op = oo + (x - hsx + 0.5) * fr + (y + hsy + 0.5) * fo
+                op = oo + (x - hsx + (0.5 if sxeven else 0)) * fr + (hsy - y - (0.5 if syeven else 0)) * fo
                 points = [(op, color(255, 255, 255), 0)]
-                cop = self.c - op
-                a = op + self.f + ((self.f.amount()/cos(angl(cop, self.f))) * cop.unitVec() - self.f) * self.ref
+                cop = op - self.c
+                a = self.f + ((self.f.amount()/cos(angl(cop, self.f))) * cop.unitVec() - self.f) * self.ref
                 g1 = gP(op, a)
                 tempPoint = None
                 noLight = True
                 bounces = 0
                 while noLight and bounces <= self.maxBounces:
                     for light in self.lights:
-                        eq = g1.element(light.pos)
-                        if eq[0] and eq[1] >= 0:
-                            points.append((light.pos, light.color, light.intensity))
-                            noLight = False
-                            break
-                        rad = sin(angl(light.pos - g1.op, g1.a)) * (light.pos - g1.op).amount()
-                        if rad < light.radius:
-                            points.append((light.pos, light.color, light.intensity * (1 - rad/light.radius)))
-                            noLight = False
-                            break
+                        ang = angl(light.pos - g1.op, g1.a)
+                        if ang < 1.57079633:
+                            rad = sin(ang) * (light.pos - g1.op).amount()
+                            if rad < light.radius:
+                                points.append((light.pos, light.color, light.intensity * (1 - rad/light.radius)))
+                                noLight = False
+                                break
                     if not noLight:
                         break
-                    for i,pol in enumerate(polys):
+                    for i,pol in enumerate(self.polys):
                         if tempPoint != None:
                             if i == tempPoint[4]:
                                 continue
                         e = pol.plane()
-                        n = e.n()
-                        if n * g1.a == 0:
+                        sp = pIntersectG(e, g1, (0, 999), (0, 1), (0, 1))
+                        if sp == None:
                             continue
-                        dk = det3x3([
-                            [e.a.x, e.b.x, -g1.a.x],
-                            [e.a.y, e.b.y, -g1.a.y],
-                            [e.a.z, e.b.z, -g1.a.z]
-                        ])
-                        dt = det3x3([
-                            [g1.op.x - e.op.x, e.b.x, -g1.a.x],
-                            [g1.op.y - e.op.y, e.b.y, -g1.a.y],
-                            [g1.op.z - e.op.z, e.b.z, -g1.a.z]
-                        ])
-                        ds = det3x3([
-                            [e.a.x, g1.op.x - e.op.x, -g1.a.x],
-                            [e.a.y, g1.op.y - e.op.y, -g1.a.y],
-                            [e.a.z, g1.op.z - e.op.z, -g1.a.z]
-                        ])
-                        dp = det3x3([
-                            [e.a.x, e.b.x, g1.op.x - e.op.x],
-                            [e.a.y, e.b.y, g1.op.y - e.op.y],
-                            [e.a.z, e.b.z, g1.op.z - e.op.z]
-                        ])
-                        if dk == 0:
-                            continue
-                        t = dt/dk
-                        s = ds/dk
-                        g1t = dp/dk
-                        if t > 1 or s > 1 or t < 0 or s < 0 or g1t <= 0:
-                            continue
-                        sp = e.calc(t, s)
                         l = (sp - g1.op).amount()
                         if tempPoint != None:
                             if l < tempPoint[2]:
@@ -136,12 +105,7 @@ class renderer:
                         else:
                             tempPoint = (sp, pol.rgb, l, e, i)
                     if tempPoint != None:
-                        nea = g1.a * -1
-                        n = tempPoint[3].n()
-                        gam = angl(n, nea)
-                        nea = nea.unitVec() * (n.amount()/cos(gam))
-                        newa = n + (n - nea)
-                        g1 = gP(tempPoint[0], newa)
+                        g1 = pReflectG(tempPoint[3], g1, tempPoint[0])
                         bounces += 1
                         points.append((tempPoint[0], tempPoint[1], 0)) 
                     else:

@@ -1,5 +1,7 @@
 import time
 import pygame
+import numpy as np
+from PIL import Image
 from vectors import *
 from renderer import *
 
@@ -29,32 +31,18 @@ with open("cubes.txt", "r") as file:
         of = vector3(float(spl[1])/2, float(spl[2])/2, float(spl[3])/2)
         lColor = spl[4].split(",")
         col = color(int(lColor[0]), int(lColor[1]), int(lColor[2]))
-        if int(spl[5]) == 1:
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), col))
-        else:
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), col))
-            polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x + of.x, pos.y + of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), col))
+        polis.append(poly(vector3(pos.x - of.x, pos.y + of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x + of.x, pos.y + of.y, pos.z + of.z), col))
+        polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z - of.z), vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), col))
+        polis.append(poly(vector3(pos.x + of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z + of.z), vector3(pos.x - of.x, pos.y - of.y, pos.z - of.z), col))
     file.close()
 
 lights = []
@@ -81,8 +69,13 @@ running = True
 #one time renderer
 screen.fill((255, 255, 255))
 pygame.display.flip()
-ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 0.8, window_width, window_height, window_width/1000, polis, lights, 4)
+ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 0.5, window_width, window_height, window_width/1000, polis, lights, 12)
 pixs = ren.render()
+
+array = np.array(pixs, dtype=np.uint8)
+
+render_image = Image.fromarray(array)
+render_image.save('render.png')
 
 with open("screen.txt", "w") as file:
     con = ""

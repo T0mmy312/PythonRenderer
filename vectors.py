@@ -37,8 +37,9 @@ def mul3x3(a, b):
     [a[0][0]*b[2][0]+a[1][0]*b[2][1]+a[2][0]*b[2][2], a[0][1]*b[2][0]+a[1][1]*b[2][1]+a[2][1]*b[2][2], a[0][2]*b[2][0]+a[1][2]*b[2][1]+a[2][2]*b[2][2]]
   ]
 
-def pIntersect(e, g1, g1tLim = None, etLim = None, esLim = None): #returns the intersection point of a line and a plane
-  if e.n() * g1.a == 0:
+def pIntersectG(e, g1, g1tLim = None, etLim = None, esLim = None):
+  n = e.n()
+  if n * g1.a == 0:
     return None
   dk = det3x3([
     [e.a.x, e.b.x, -g1.a.x],
@@ -46,19 +47,19 @@ def pIntersect(e, g1, g1tLim = None, etLim = None, esLim = None): #returns the i
     [e.a.z, e.b.z, -g1.a.z]
   ])
   dt = det3x3([
-    [g1.op.x - e.p.x, e.b.x, -g1.a.x],
-    [g1.op.y - e.p.y, e.b.y, -g1.a.y],
-    [g1.op.z - e.p.z, e.b.z, -g1.a.z]
+    [g1.op.x - e.op.x, e.b.x, -g1.a.x],
+    [g1.op.y - e.op.y, e.b.y, -g1.a.y],
+    [g1.op.z - e.op.z, e.b.z, -g1.a.z]
   ])
   ds = det3x3([
-    [e.a.x, g1.op.x - e.p.x, -g1.a.x],
-    [e.a.y, g1.op.y - e.p.y, -g1.a.y],
-    [e.a.z, g1.op.z - e.p.z, -g1.a.z]
+    [e.a.x, g1.op.x - e.op.x, -g1.a.x],
+    [e.a.y, g1.op.y - e.op.y, -g1.a.y],
+    [e.a.z, g1.op.z - e.op.z, -g1.a.z]
   ])
   dp = det3x3([
-    [e.a.x, e.b.x, g1.op.x - e.p.x],
-    [e.a.y, e.b.y, g1.op.y - e.p.y],
-    [e.a.z, e.b.z, g1.op.z - e.p.z]
+    [e.a.x, e.b.x, g1.op.x - e.op.x],
+    [e.a.y, e.b.y, g1.op.y - e.op.y],
+    [e.a.z, e.b.z, g1.op.z - e.op.z]
   ])
   t = dt/dk
   s = ds/dk
@@ -73,11 +74,24 @@ def pIntersect(e, g1, g1tLim = None, etLim = None, esLim = None): #returns the i
     if s < esLim[0] or s > esLim[1]:
       return None
   return g1.calc(p)
-  
+
+def pReflectG(e, g1, sp): #returns the reflection of a line and a plane
+  ret = gP(vector3(0, 0, 0), vector3(0, 0, 0))
+  n = e.n()
+  a = g1.a * -1
+  ret.op = sp
+  alpha = angl(a, n)
+  if degrees(alpha) > 90:
+    n = n * -1
+    alpha = angl(a, n)
+  a = a.unitVec() * (n.amount()/cos(alpha))
+  a = n + (n - a)
+  ret.a = a
+  return ret
 
 class vector3:
 
-  def __init__(self, x, y, z):
+  def __init__(self, x = 0, y = 0, z = 0):
     self.x = x
     self.y = y
     self.z = z
@@ -174,7 +188,7 @@ class vector3:
 
 class vector2:
 
-  def __init__(self, x, y):
+  def __init__(self, x = 0, y = 0):
     self.x = x
     self.y = y
 
@@ -279,7 +293,7 @@ class plane:
     return crossProd(self.a, self.b)
   
   def calc(self, t, s):
-    return self.p + t * self.a + s * self.b
+    return self.op + t * self.a + s * self.b
   
   def onPlane(self, p: vector3):
     dk = self.a.x * self.b.y - self.a.y * self.b.x
