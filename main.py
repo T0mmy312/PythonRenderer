@@ -57,8 +57,8 @@ with open("lights.txt", "r") as file:
         lights.append(light(vector3(float(pos[0]), float(pos[1]), float(pos[2])), color(float(rgb[0]), float(rgb[1]), float(rgb[2])), intens, float(spl[3])))
     file.close()
 
-window_width = 800
-window_height = 600
+window_width = 400
+window_height = 300
 
 screen = pygame.display.set_mode((window_width, window_height))
 
@@ -69,7 +69,7 @@ running = True
 #one time renderer
 screen.fill((255, 255, 255))
 pygame.display.flip()
-ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 0.5, window_width, window_height, window_width/1000, polis, lights, 12)
+ren = renderer(vector3(3, 0, 0), vector3(-0.08, 0, 0), 1, window_width, window_height, window_width/1000, polis, lights, 12, 0.25, 12)
 pixs = ren.render()
 
 array = np.array(pixs, dtype=np.uint8)

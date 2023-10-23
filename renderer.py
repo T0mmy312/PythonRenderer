@@ -42,7 +42,7 @@ class light:
         self.radius = radius
 
 class renderer:
-    def __init__(self, c, f, ref, screenX, screenY, sensX, polys, lights, maxBounces):
+    def __init__(self, c, f, ref, screenX, screenY, sensX, polys, lights, maxBounces, scatter, samples):
         self.c = c
         self.f = f
         self.ref = ref
@@ -54,6 +54,8 @@ class renderer:
         self.polys = polys
         self.lights = lights
         self.maxBounces = maxBounces
+        self.scatter = scatter
+        self.samples = samples
     
     def render(self):
         fy = vector3(0, 1, 0)
@@ -82,10 +84,10 @@ class renderer:
                 while noLight and bounces <= self.maxBounces:
                     for light in self.lights:
                         ang = angl(light.pos - g1.op, g1.a)
-                        if ang < 1.57079633:
+                        if ang < 1.57079633: # 1.57079633 rad = 90°
                             rad = sin(ang) * (light.pos - g1.op).amount()
-                            if rad < light.radius:
-                                points.append((light.pos, light.color, light.intensity * (1 - rad/light.radius)))
+                            if rad < light.radius + bounces * self.scatter:
+                                points.append((light.pos, light.color, light.intensity * (1 - rad/(light.radius + bounces * self.scatter))))
                                 noLight = False
                                 break
                     if not noLight:
